@@ -90,6 +90,7 @@ class Youtube :
 class Spotify :
     def __init__(self, songs):
         self.token = spotify_secrets.SPOTIFY_TOKEN
+        self.user_id = spotify_secrets.SPOTIFY_USER_ID
         self.songs = songs
 
     def find_songs(self) :
@@ -117,7 +118,59 @@ class Spotify :
                 response.json()['tracks']['items'][0]['uri']
             )
     
-        print(found_songs)
+        self.songs_searched = found_songs
+        # print(found_songs)
+
+    def create_or_find_playlist(self) :
+        url = f'https://api.spotify.com/v1/users/{self.user_id}/playlists'
+
+        response = requests.get(
+            url,
+            headers = {
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
+            }
+        )
+
+        for playlist in json.loads(response.content)['items'] :
+            if playlist['name'] == 'From Youtube' :
+                self.playlist_id = playlist['id']
+
+        if not self.playlist_id :
+            response = requests.post(
+                url,
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.token}'
+                },
+                data = json.dumps({
+                    'name': 'From Youtube',
+                    'public': True,
+                    'description': "Tracks automatically being added from Youtube from a python program."
+                })
+            )
+
+            self.playlist_id = json.loads(response.content)['id']
+
+    def add_songs_to_playlist(self) :
+        url = f'https://api.spotify.com/v1/playlists/{self.playlist_id}/tracks'
+
+        response = requests.post(
+            url,
+            headers = {
+                'Authorization': f'Bearer {self.token}',
+                'Content-Type': 'application/json'
+            },
+            data = json.dumps([
+                    track for track in self.songs_searched
+                ])
+        )
+
+        if response.status_code == 201 :
+            print(f"{len(self.songs_searched)} Songs Added to Playlist Successfully")
+
+        else :
+            print(response.status_code, json.loads(response.content))
 
 def main():
     # Disable OAuthlib's HTTPS verification when running locally.
@@ -126,6 +179,8 @@ def main():
     youtube = Youtube()
     spotify = Spotify(youtube.get_playlist_items())
     spotify.find_songs()
+    spotify.create_or_find_playlist()
+    spotify.add_songs_to_playlist()
     
     # youtube.get_song_details()
 
