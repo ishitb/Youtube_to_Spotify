@@ -1,2 +1,4 @@
 .vscode
 secret.json
+token.pickle
+secrets.py
