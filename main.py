@@ -99,7 +99,7 @@ class Spotify :
         url = 'https://api.spotify.com/v1/search?type=track'
 
         for song in self.songs :
-            query = url + f"&q={re.sub(' ', '%20', song.lower())}"
+            query = url + f"&q={re.sub(' ', '%20', song)}"
 
             response = requests.get(
                 query,
@@ -112,7 +112,7 @@ class Spotify :
                 uri = response.json()['tracks']['items'][0]['uri']
             except Exception as e :
                 print(e)
-                print("Song:", re.sub(' ', '%20', song.lower()))
+                print("Song:", re.sub(' ', '%20', song))
     
             found_songs.append(
                 response.json()['tracks']['items'][0]['uri']
@@ -173,8 +173,6 @@ class Spotify :
             print(response.status_code, json.loads(response.content))
 
 def main():
-    # Disable OAuthlib's HTTPS verification when running locally.
-    # *DO NOT* leave this option enabled in production.
 
     youtube = Youtube()
     spotify = Spotify(youtube.get_playlist_items())

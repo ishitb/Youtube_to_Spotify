@@ -2,3 +2,9 @@
 secret.json
 token.pickle
 secrets.py
+node_modules
+.prettierrc.js
+*/*.pyc
+
+*.js
+package*.json
